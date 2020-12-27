@@ -11,42 +11,204 @@ This assignment uses data from the [UC Irvine Machine Learning Repository](http:
 
 We are using the [Individual household electric power consumption Data Set](https://archive.ics.uci.edu/ml/datasets/individual+household+electric+power+consumption)
 
-### The 9 variables in the dataset are taken from the UCI web site:
+**The 9 variables in the dataset are taken from the UCI web site:**
 
-1. Date
-1. Time
-1. Global_active_power
-1. Global_reactive_power
-1. Voltage
-1. Global_intensity
-1. Sub_metering_1
-1. Sub_metering_2
-1. Sub_metering_3
+- Date, Time, Global_active_power, Global_reactive_power, Voltage, Global_intensity, Sub_metering_1, Sub_metering_2, Sub_metering_3
 
 
-## Tasks
+**Tasks**
 
-1. Was a valid GitHub URL containing a git repository submitted?
-    - `git clone https://github.com/rdpeng/ExData_Plotting1`
+1. Use GitHub material from Roger Peng.  
+    - Use: `git clone https://github.com/rdpeng/ExData_Plotting1`  
+  
+2. Save to MCCurcio GitHub repository?  
+    
+3. Produce 4 plots;  
+    1. Histogram of Global_active_power  
+    2. Plot of Global_active_power versus datetime  
+    3. Plot  of Sub meterings versus datetime  
+    4. 2 x 2 Plots  
+    
+---
 
-2. Does the GitHub repository contain at least one commit beyond the original fork?
+## Data Preparation
 
-3. Please examine the plot files in the GitHub repository. Do the plot files appear to be of the correct graphics file format?
-4. Does each plot appear correct?
-5. Does each set of R code appear to create the reference plot?
+### Load Household Power Consumption(hpc)
+
+NOTE: The date column is read into `hpc` dataframe **with** date = 
+      *col_date(format = "%d/%m/%Y")*. This makes subsetting data
+      into Feb. 1 and 2 easier.
+```{r message=FALSE, warning=FALSE}
+library(readr)
+
+setwd("~/Dropbox/R_exercises/Coursera/Exploratory Data Analysis/week1/ExData_Plotting1")
+
+hpc <- read_delim("exdata_data_household_power_consumption.zip", 
+                  ";", 
+                  trim_ws = TRUE,
+                  escape_double = FALSE, 
+                  col_types = cols(Date = col_date(format = "%d/%m/%Y"),
+                                   Time = col_character(),
+                                   Global_intensity = col_skip()))
+
+str(hpc)
+```
+
+### Subset Household Power Consumption(hpc) to Feb 1-2, 2007
+Use between Dates: 2007-02-01 and 2007-02-02.
+```{r}
+btwn_two_dates <- function(x, y){
+      hpc[hpc$Date >= x & hpc$Date <= y,]
+      }
+
+DATE1 <- as.Date("2007-02-01")
+DATE2 <- as.Date("2007-02-02")
+
+hpc_feb <- btwn_two_dates(DATE1, DATE2)
+
+names(hpc_feb)
+```
+
+### Generate DateTime stamp for graphing.
+```{r message=FALSE, warning=FALSE}
+library(lubridate)
+
+hpc_feb$Date <- as.character(hpc_feb$Date)
+class(hpc_feb$Date)
+
+hpc_feb$DateTime <- paste(hpc_feb$Date, hpc_feb$Time)
+hpc_feb$DateTime <- parse_date_time(hpc_feb$DateTime, 'Ymd HMS')
+
+head(hpc_feb$DateTime)
+```
+
+---
+
+## Make 4 Plots 
+
+### Plot 1 - `mcc_plot_1.png`
+Histogram of `Global_active_power` vs frequency
+```{r}
+plot_1 <- function(){
+    hist(hpc_feb$Global_active_power, 
+         main = "Global Active Power",
+         xlab = "Global Active Power (kW)",
+         ylim = c(0, 1400), # Changed x & y limits to read values
+         xlim = c(0, 8),
+         col = "red")
+         # Default for this graphic is width = 480, height = 480.
+         # To change the size add the parameters width & height.
+}
+
+plot_1()
+
+png(file = "mcc_plot_1.png")
+plot_1()
+dev.off()
+```
 
 
 
 
+### Plot 2 - `mcc_plot_2.png`
+Plot `Global_active_power` versus `datetime`
+```{r}
+plot_2 <- function(){
+    plot(x = hpc_feb$DateTime,
+         y = hpc_feb$Global_active_power,
+         type = "l",
+         main = "Global Active Power vs Datetime",
+         ylim = c(0, 8),
+         ylab = "Global Active Power (kW)",
+         xlab = "DateTime")
+         # Default for this graphic is width = 480, height = 480.
+         # To change the size add the parameters width & height.
+}
+
+plot_2()
+
+png(file = "mcc_plot_2.png")
+plot_2()
+dev.off()
+```
 
 
+### Plot 3 - `mcc_plot_3.png`
+Plot  of Sub meterings versus datetime
+```{r}
+plot_3 <- function(){
+    with(hpc_feb, {
+         plot(x = DateTime, 
+         y = Sub_metering_1, 
+         ylab = "Energy Sub Metering",
+         type = "l",
+         ylim = c(0, 40))
+    lines(x = DateTime, 
+          y = Sub_metering_2, 
+          col = "red")
+    lines(x = DateTime, 
+          y = Sub_metering_3, 
+          col = "blue")
+    # add legend
+	  legend("topright", 
+	         c("Sub_metering_1","Sub_metering_2", "Sub_metering_3"),
+	         col = c("black", "red", "blue"),
+	         lty = c(1, 1, 1),
+	         box.col = "white")
+    }
+    )
+}
+
+plot_3()
+
+png(file = "mcc_plot_3.png")
+plot_3()
+dev.off()
+```
+
+### Plot 4 - `mcc_plot_4.png`
+**plot_volts**
+```{r}
+plot_volts <- function(){
+      plot(x = hpc_feb$DateTime,
+           y = hpc_feb$Voltage,
+           xlab = "DateTime",
+           ylab = "Voltage",
+           type = "l")
+}
+
+plot_volts()
+```
+
+**plot_grp**
+```{r}
+plot_grp <- function(){
+      plot(x = hpc_feb$DateTime,
+           y = hpc_feb$Global_reactive_power,
+           xlab = "DateTime",
+           ylab = "Global_reactive_power",
+           type = "l")
+}
+
+plot_grp()
+```
 
 
+**2 x 2 Plots**
+```{r}
+plot_4 <- function(){
+    par(mfrow = c(2, 2))
+    plot_2()
+    plot_volts()
+    plot_3()
+    plot_grp()
+}
 
+plot_4()
 
-
-
-
-
+png(file = "mcc_plot_4.png")
+plot_4()
+dev.off()
+```
 
 
